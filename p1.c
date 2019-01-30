@@ -5,6 +5,54 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
+
+int MAXSIZE = 8;
+int stack[];
+int top = -1;
+
+int isempty() {
+
+   if(top == -1)
+      return 1;
+   else
+      return 0;
+}
+   
+int isfull() {
+
+   if(top == MAXSIZE)
+      return 1;
+   else
+      return 0;
+}
+
+int peek() {
+	return stack[top];
+}
+
+int pop() {
+   int data;
+	
+   if(!isempty()) {
+      data = stack[top];
+      top = top - 1;   
+      return data;
+   } else {
+      printf("Could not retrieve data, Stack is empty.\n");
+   }
+}
+
+int push(int data) {
+
+   if(!isfull()) {
+      top = top + 1;   
+      stack[top] = data;
+   } else {
+      printf("Could not insert data, Stack is full.\n");
+   }
+}
+
+
 int main(int argc, char *argv[])
 {
 	printf("Welcome to the project\n");
@@ -13,9 +61,11 @@ int main(int argc, char *argv[])
 	char inputFileName[] = "input.dat";
 	char outputFileName[] = "output.dat";
 
-	FILE *fp;
-	fp = fopen(inputFileName, "r");
-	if (fp == NULL)
+	FILE *input;
+	input = fopen(inputFileName, "r");
+	FILE *output;
+	output = fopen(outputFileName, "w");
+	if (input == NULL)
 	{
 		perror("Failed to locate file.");
 		exit(1);
@@ -24,7 +74,7 @@ int main(int argc, char *argv[])
 
 	int childCount;
 	
-	fscanf(fp, "%1d", &childCount);
+	fscanf(input, "%1d", &childCount);
 
 	printf("The first number is our file is %d\n", childCount);
 	printf("Meaning we need to fork %d children to handle the file\n", childCount);
@@ -39,7 +89,7 @@ int main(int argc, char *argv[])
 		int j;
 		for (j = 0; j < linesToPass; j++) { //we must pass over what the last child passed over so next child doesn't repeat work
 			do
-				c = fgetc(fp);
+				c = fgetc(input);
 			while (c != '\n');
 		}
 		linesToPass = 2;
@@ -54,16 +104,20 @@ int main(int argc, char *argv[])
 		else if (pid == 0) {
 			printf("This is a child with id %d\n", getpid());
 			int sectionTotal;
-			fscanf(fp, "%1d", &sectionTotal);
+			fscanf(input, "%1d", &sectionTotal);
 			printf("The first number in this section is %d\n", sectionTotal);
 			printf("The remaining %d numbers are: ", sectionTotal);
 			int j;
 			for (j = 0; j < sectionTotal; j++) {
 				int temp;
-				fscanf(fp, "%d", &temp);
+				fscanf(input, "%d", &temp);
 				printf(" %d ", temp);
+				fprintf(output, " %d ", temp);
+				//fputs((" %d ", temp), output);
 			}
 			printf("\n");
+			fprintf(output, "\n");
+			//fputs("\n", output);
 			exit(0);
 			break; //I am the child, get to work
 		}
