@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <string.h>
 
-int MAXSIZE = 8;
+int MAXSIZE = 100;
 //int stack[];
 int top = -1;
 
@@ -76,10 +77,12 @@ int main(int argc, char *argv[]) {
 						//&temp = optarg;
 						printf("You entered i\n");
 						printf("Argument is %s\n", optarg);
+						strcpy(inputFileName, optarg);
 						break;
 			case 'o' :
 						printf("You entered o\n");
 						printf("Argument is %s\n", optarg);
+						strcpy(outputFileName, optarg);
 						break;
 			default :	printf("You entered an invalid argument\n");
 		}
@@ -87,7 +90,7 @@ int main(int argc, char *argv[]) {
 	
 	printf("Welcome to the project\n");
 	int i;
-	exit(0); //for testing
+	//exit(0); //for testing
 
 
 	FILE *input;
@@ -96,14 +99,17 @@ int main(int argc, char *argv[]) {
 	output = fopen(outputFileName, "w");
 	if (input == NULL)
 	{
-		perror("Failed to locate file.");
+		char errorString[100];
+		snprintf(errorString, sizeof errorString, "Failed to locate file %s ", inputFileName);
+		perror(errorString);
+		//error("Failed to locate file %s ", inputFileName);
 		exit(1);
 	}
 	printf("Opened file %s\n", inputFileName);
 
 	int childCount;
 	
-	fscanf(input, "%1d", &childCount);
+	fscanf(input, "%d", &childCount);
 
 	printf("The first number is our file is %d\n", childCount);
 	printf("Meaning we need to fork %d children to handle the file\n", childCount);
@@ -132,7 +138,7 @@ int main(int argc, char *argv[]) {
 		else if (pid == 0) {
 			printf("This is a child with id %d\n", getpid());
 			int sectionTotal;
-			fscanf(input, "%1d", &sectionTotal);
+			fscanf(input, "%d", &sectionTotal);
 			printf("The first number in this section is %d\n", sectionTotal);
 			printf("The remaining %d numbers are: ", sectionTotal);
 			int j;
@@ -159,6 +165,8 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	
+	fclose(input);
+	fclose(output);
 	printf("And now we're done\n");
 	
 	return 0;
