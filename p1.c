@@ -53,13 +53,42 @@ int push(int stack[], int data) {
 }
 
 
-int main(int argc, char *argv[])
-{
-	printf("Welcome to the project\n");
-	int i;
-	
+int main(int argc, char *argv[]) {
 	char inputFileName[] = "input.dat";
 	char outputFileName[] = "output.dat";
+	
+	printf("There are %d arguments\n", argc);
+	
+	int option;
+	char temp[100]; //setting max size as very high
+	while ((option = getopt(argc, argv, "hi:o:")) != -1) {
+		switch (option) {
+			case 'h' :
+						printf("You entered h\n"); //make sure everything needed is stated here
+						printf("Help page for OS_Klein_project1\n");
+						printf("Consists of the following:\n\tOne .c file titled p1.c\n\tOne Makefile\n\tOne README.md file\n\tOne version control log.\n");
+						printf("The command 'make' will run the makefile and compile the program\n");
+						printf("Usage: ./p1 -i <inputFileName> -o <outputFileName> | ./p1 -h\n");
+						printf("Version control acomplished using github. Log obtained using command 'git log > versionLog.txt\n");
+						exit(0);
+						break;
+			case 'i' :
+						//&temp = optarg;
+						printf("You entered i\n");
+						printf("Argument is %s\n", optarg);
+						break;
+			case 'o' :
+						printf("You entered o\n");
+						printf("Argument is %s\n", optarg);
+						break;
+			default :	printf("You entered an invalid argument\n");
+		}
+	}
+	
+	printf("Welcome to the project\n");
+	int i;
+	exit(0); //for testing
+
 
 	FILE *input;
 	input = fopen(inputFileName, "r");
