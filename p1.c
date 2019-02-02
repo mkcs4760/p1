@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/types.h>
 #include <string.h>
 
 int MAXSIZE = 100;
@@ -91,7 +92,7 @@ int main(int argc, char *argv[]) {
 	printf("Welcome to the project\n");
 	int i;
 	//exit(0); //for testing
-
+	
 
 	FILE *input;
 	input = fopen(inputFileName, "r");
@@ -114,6 +115,8 @@ int main(int argc, char *argv[]) {
 	printf("The first number is our file is %d\n", childCount);
 	printf("Meaning we need to fork %d children to handle the file\n", childCount);
 	
+	int parentPid;
+	int listOfPids[childCount];
 	int linesToPass = 1; //the child processes don't change the parent's reading position, so we must pass ahead in the parent as well
 	
 	pid_t pid;
@@ -130,13 +133,19 @@ int main(int argc, char *argv[]) {
 		linesToPass = 2;
 		
 		pid = fork();
+		//listOfPids[i] = getpid();
 		if (pid > 0) {
 			printf("Don't look at me I'm only the parent\n");
+			parentPid = getpid();
 			wait(NULL);
+			printf("The child that just completed had the pid %d\n", pid);
+			listOfPids[i] = pid;
 			continue; //I am the parent, create more children
 		}
 		else if (pid == 0) {
 			printf("This is a child with id %d\n", getpid());
+			//listOfPids[i] = getpid();
+			printf("That's right, %d\n", listOfPids[i]);
 			int sectionTotal;
 			fscanf(input, "%d", &sectionTotal);
 			printf("The first number in this section is %d\n", sectionTotal);
@@ -164,9 +173,16 @@ int main(int argc, char *argv[]) {
 			exit(EXIT_FAILURE);
 		}
 	}
+	//listOfPids(childCount) = gitppid();
 	
 	fclose(input);
 	fclose(output);
+	printf("All children were: ");
+	for (i = 0; i < childCount; i++) {
+		printf(" %d ", listOfPids[i]);
+	}
+	printf("\n And the parent was %d\n", parentPid);
+	
 	printf("And now we're done\n");
 	
 	return 0;
