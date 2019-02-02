@@ -7,7 +7,7 @@
 #include <sys/wait.h>
 
 int MAXSIZE = 8;
-int stack[];
+//int stack[];
 int top = -1;
 
 int isempty() {
@@ -26,11 +26,11 @@ int isfull() {
       return 0;
 }
 
-int peek() {
+int peek(int stack[]) {
 	return stack[top];
 }
 
-int pop() {
+int pop(int stack[]) {
    int data;
 	
    if(!isempty()) {
@@ -42,7 +42,7 @@ int pop() {
    }
 }
 
-int push(int data) {
+int push(int stack[], int data) {
 
    if(!isfull()) {
       top = top + 1;   
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 	printf("The first number is our file is %d\n", childCount);
 	printf("Meaning we need to fork %d children to handle the file\n", childCount);
 	
-	int linesToPass = 1;
+	int linesToPass = 1; //the child processes don't change the parent's reading position, so we must pass ahead in the parent as well
 	
 	pid_t pid;
 	for (i = 0; i < childCount; i++)
@@ -94,7 +94,6 @@ int main(int argc, char *argv[])
 		}
 		linesToPass = 2;
 		
-		
 		pid = fork();
 		if (pid > 0) {
 			printf("Don't look at me I'm only the parent\n");
@@ -108,13 +107,17 @@ int main(int argc, char *argv[])
 			printf("The first number in this section is %d\n", sectionTotal);
 			printf("The remaining %d numbers are: ", sectionTotal);
 			int j;
+			int stack[sectionTotal];
 			for (j = 0; j < sectionTotal; j++) {
 				int temp;
 				fscanf(input, "%d", &temp);
 				printf(" %d ", temp);
-				fprintf(output, " %d ", temp);
-				//fputs((" %d ", temp), output);
+				push(stack, temp);
 			}
+			for (j = 0; j < sectionTotal; j++) {
+				fprintf(output, " %d ", pop(stack));
+			}
+			
 			printf("\n");
 			fprintf(output, "\n");
 			//fputs("\n", output);
