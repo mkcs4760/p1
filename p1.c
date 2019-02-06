@@ -23,10 +23,12 @@ void push(int stack[], int data) {
 
 void errorMessage(char programName[100], char errorString[100]){
 	printf("ERROR MESSAGE\n");
+	printf("%s\n", programName);
 	char errorFinal[100];
 	//snprintf(errorString, sizeof errorString, "Failed to locate file %s ", inputFileName);
+	//snprintf(errorFinal, sizeof errorFinal, "This is just a test\n");
 	snprintf(errorFinal, sizeof errorFinal, programName, ": Error: ", errorString);
-	perror(errorString);
+	perror(errorFinal);
 	exit(EXIT_FAILURE);
 }
 
@@ -37,11 +39,11 @@ int main(int argc, char *argv[]) {
 	//this code allows us to print the program name in error messages
 	char programName[100];
 	strcpy(programName, argv[0]);
-	printf("%s\n", programName);
+	//printf("%s\n", programName);
 	if (programName[0] == '.' && programName[1] == '/') {
 		memmove(programName, programName + 2, strlen(programName));
 	}
-	printf("%s\n", programName);
+	//printf("%s\n", programName);
 	//printf("%s\n", argv[0]);
 	
 	int option;
