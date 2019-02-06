@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <sys/types.h> //make sure you need all of these...
 #include <string.h>
+#include <errno.h>
 
 int top = -1;
 
@@ -20,9 +21,28 @@ void push(int stack[], int data) {
 	stack[top] = data;
 }
 
+void errorMessage(char programName[100], char errorString[100]){
+	printf("ERROR MESSAGE\n");
+	char errorFinal[100];
+	//snprintf(errorString, sizeof errorString, "Failed to locate file %s ", inputFileName);
+	snprintf(errorFinal, sizeof errorFinal, programName, ": Error: ", errorString);
+	perror(errorString);
+	exit(EXIT_FAILURE);
+}
+
 int main(int argc, char *argv[]) {
 	char inputFileName[] = "input.dat";
 	char outputFileName[] = "output.dat";
+	
+	//this code allows us to print the program name in error messages
+	char programName[100];
+	strcpy(programName, argv[0]);
+	printf("%s\n", programName);
+	if (programName[0] == '.' && programName[1] == '/') {
+		memmove(programName, programName + 2, strlen(programName));
+	}
+	printf("%s\n", programName);
+	//printf("%s\n", argv[0]);
 	
 	int option;
 	while ((option = getopt(argc, argv, "hi:o:")) != -1) {
@@ -38,7 +58,11 @@ int main(int argc, char *argv[]) {
 						break;
 			case 'o' :	strcpy(outputFileName, optarg);
 						break;
-			default :	printf("You entered an invalid argument\n");
+			default :	errno = 22; //invalid argument
+						errorMessage(programName, "You entered an invalid argument. Please use argument -h to see the help page. ");
+						//printf("'%d' is an invalid argument, and therefore will be ignored", option);
+						printf("You entered an invalid argument. Please use argument -h to see the help page.");
+						//printf("You entered an invalid argument\n");
 		}
 	}
 	
@@ -51,8 +75,11 @@ int main(int argc, char *argv[]) {
 	if (input == NULL) {
 		char errorString[100];
 		snprintf(errorString, sizeof errorString, "Failed to locate file %s ", inputFileName);
-		perror(errorString);
-		exit(EXIT_FAILURE);
+		errorMessage(programName, errorString);
+		//char errorString[100];
+		//snprintf(errorString, sizeof errorString, "Failed to locate file %s ", inputFileName);
+		//perror(errorString);
+		//exit(EXIT_FAILURE);
 	}
 	printf("Opened file %s\n", inputFileName);
 
@@ -102,8 +129,7 @@ int main(int argc, char *argv[]) {
 			break; //I am the child, get to work
 		}
 		else {
-			perror("Error while forking");
-			exit(EXIT_FAILURE);
+			errorMessage(programName, "Could not create child");
 		}
 	}
 	
