@@ -22,12 +22,8 @@ void push(int stack[], int data) {
 }
 
 void errorMessage(char programName[100], char errorString[100]){
-	printf("ERROR MESSAGE\n");
-	printf("%s\n", programName);
-	char errorFinal[100];
-	//snprintf(errorString, sizeof errorString, "Failed to locate file %s ", inputFileName);
-	//snprintf(errorFinal, sizeof errorFinal, "This is just a test\n");
-	snprintf(errorFinal, sizeof errorFinal, programName, ": Error: ", errorString);
+	char errorFinal[200];
+	sprintf(errorFinal, "%s : Error : %s", programName, errorString);
 	perror(errorFinal);
 	exit(EXIT_FAILURE);
 }
@@ -62,9 +58,6 @@ int main(int argc, char *argv[]) {
 						break;
 			default :	errno = 22; //invalid argument
 						errorMessage(programName, "You entered an invalid argument. Please use argument -h to see the help page. ");
-						//printf("'%d' is an invalid argument, and therefore will be ignored", option);
-						printf("You entered an invalid argument. Please use argument -h to see the help page.");
-						//printf("You entered an invalid argument\n");
 		}
 	}
 	
