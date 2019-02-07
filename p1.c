@@ -6,6 +6,7 @@
 #include <sys/types.h> //make sure you need all of these...
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
 int top = -1;
 
@@ -25,7 +26,16 @@ void errorMessage(char programName[100], char errorString[100]){
 	char errorFinal[200];
 	sprintf(errorFinal, "%s : Error : %s", programName, errorString);
 	perror(errorFinal);
-	exit(EXIT_FAILURE);
+	//exit(EXIT_FAILURE);
+	kill(0, SIGKILL);
+}
+
+void removeSpaces(char* s) {
+	int length = strlen(s);
+	char test = s[length - 1];
+	if (isspace(test)) {
+		s[strlen(s)-1] = '\0'; //remove ending whitespace
+	}
 }
 
 int readOneNumber(FILE *input) {
@@ -35,14 +45,32 @@ int readOneNumber(FILE *input) {
 	printf("%s\n", line);
 
 	token = strtok(line, " "); //this is our first number
-	printf("First number is %s\n", token);
+	removeSpaces(token); //testing this new line
+	printf("First number is %s!\n", token);
 	int ourValue = atoi(token);
+	
 	if ((token = strtok(NULL, " ")) != NULL) {
-		return -1;
+		//this also catches a stupid whitespace
+		if (token[0] == '\n') {
+			return ourValue;
+		}
+		else {
+			return -1;
+		}
+		//printf("!%s!\n", token);
+		//return -1;
 	}
 	else {
 		return ourValue;
 	}
+	
+	
+	/*if ((token = strtok(NULL, " ")) != NULL && !isspace(token)) { //if there's still something there and it is NOT just whitespace
+		return -1;
+	}
+	else {
+		return ourValue;
+	}*/
 }
 
 int main(int argc, char *argv[]) {
@@ -96,16 +124,15 @@ int main(int argc, char *argv[]) {
 	childCount = readOneNumber(input);
 	if (childCount == -1) {
 		errno = 1;
-		errorMessage(programName, "Invalid input file format");		
+		errorMessage(programName, "Invalid input file format1");		
 	}
 	int cool = childCount;
 	printf("Our first line is recorded to contain %d\n", cool);
 	
-	exit(0);
 	
 	int parentPid;
 	int listOfPids[childCount];
-	int linesToPass = 1; //the child processes don't change the parent's reading position, so we must pass ahead in the parent as well
+	int linesToPass = 0; //the child processes don't change the parent's reading position, so we must pass ahead in the parent as well
 	
 	pid_t pid;
 	int i;
@@ -129,10 +156,17 @@ int main(int argc, char *argv[]) {
 		else if (pid == 0) { //child case
 			int sectionTotal;
 			//fscanf(input, "%d", &sectionTotal); //read the total for this section
-			
+			//printf("!!!!!!!!!!!!!!!!");
 			//fgets(line, 100, input);
 			
-			
+			sectionTotal = readOneNumber(input);
+			printf("readOneNumber returned %d\n", sectionTotal);
+			if (sectionTotal == -1) {
+				errno = 1;
+				errorMessage(programName, "Invalid input file format2");		
+			}
+			//int cool = childCount;
+			//printf("Our first line in child %d is recorded to contain %d\n", getpid(), sectionTotal);
 			
 			int j;
 			int stack[sectionTotal];
@@ -142,10 +176,14 @@ int main(int argc, char *argv[]) {
 				push(stack, temp);
 			}
 			fprintf(output, "%d: ", getpid());
+			//printf("Here's the output!\n");
+			//printf("%d: ", getpid());
 			for (j = 0; j < sectionTotal; j++) {
 				fprintf(output, " %d ", pop(stack));
+				//printf(" %d ", pop(stack));
 			}
 			fprintf(output, "\n");
+			//printf("\n");
 			exit(0);
 			break; //I am the child, get to work
 		}
