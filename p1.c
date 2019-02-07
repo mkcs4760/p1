@@ -1,4 +1,4 @@
-//p1 is almost done
+//working on adding input format testing
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -26,6 +26,23 @@ void errorMessage(char programName[100], char errorString[100]){
 	sprintf(errorFinal, "%s : Error : %s", programName, errorString);
 	perror(errorFinal);
 	exit(EXIT_FAILURE);
+}
+
+int readOneNumber(FILE *input) {
+	char line[100];
+	char *token;
+	fgets(line, 100, input);
+	printf("%s\n", line);
+
+	token = strtok(line, " "); //this is our first number
+	printf("First number is %s\n", token);
+	int ourValue = atoi(token);
+	if ((token = strtok(NULL, " ")) != NULL) {
+		return -1;
+	}
+	else {
+		return ourValue;
+	}
 }
 
 int main(int argc, char *argv[]) {
@@ -71,17 +88,21 @@ int main(int argc, char *argv[]) {
 		char errorString[100];
 		snprintf(errorString, sizeof errorString, "Failed to locate file %s ", inputFileName);
 		errorMessage(programName, errorString);
-		//char errorString[100];
-		//snprintf(errorString, sizeof errorString, "Failed to locate file %s ", inputFileName);
-		//perror(errorString);
-		//exit(EXIT_FAILURE);
 	}
 	printf("Opened file %s\n", inputFileName);
 
 	int childCount;
 	
-	fscanf(input, "%d", &childCount);
-
+	childCount = readOneNumber(input);
+	if (childCount == -1) {
+		errno = 1;
+		errorMessage(programName, "Invalid input file format");		
+	}
+	int cool = childCount;
+	printf("Our first line is recorded to contain %d\n", cool);
+	
+	exit(0);
+	
 	int parentPid;
 	int listOfPids[childCount];
 	int linesToPass = 1; //the child processes don't change the parent's reading position, so we must pass ahead in the parent as well
@@ -107,7 +128,12 @@ int main(int argc, char *argv[]) {
 		}
 		else if (pid == 0) { //child case
 			int sectionTotal;
-			fscanf(input, "%d", &sectionTotal);
+			//fscanf(input, "%d", &sectionTotal); //read the total for this section
+			
+			//fgets(line, 100, input);
+			
+			
+			
 			int j;
 			int stack[sectionTotal];
 			for (j = 0; j < sectionTotal; j++) {
