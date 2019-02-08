@@ -25,8 +25,8 @@ void push(int stack[], int data) {
 void errorMessage(char programName[100], char errorString[100]){
 	char errorFinal[200];
 	sprintf(errorFinal, "%s : Error : %s", programName, errorString);
+	//printf("%d\n", errno);
 	perror(errorFinal);
-	//exit(EXIT_FAILURE);
 	kill(0, SIGKILL);
 }
 
@@ -42,35 +42,65 @@ int readOneNumber(FILE *input) {
 	char line[100];
 	char *token;
 	fgets(line, 100, input);
-	printf("%s\n", line);
 
 	token = strtok(line, " "); //this is our first number
 	removeSpaces(token); //testing this new line
-	printf("First number is %s!\n", token);
 	int ourValue = atoi(token);
 	
 	if ((token = strtok(NULL, " ")) != NULL) {
-		//this also catches a stupid whitespace
+		//this also catches hanging whitespace
 		if (token[0] == '\n') {
 			return ourValue;
 		}
 		else {
 			return -1;
 		}
-		//printf("!%s!\n", token);
-		//return -1;
 	}
 	else {
 		return ourValue;
 	}
+}
+
+void readAndStackNumbers(FILE *input, FILE *output, char programName[100], int sectionTotal) {
+	char line[100];
+	char *token;
+	int counter = 0;
+	int singleNum;
+	fgets(line, 100, input);
+	printf("Here's our line: %s\n", line);
+
+	int stack[sectionTotal];
 	
+	token = strtok(line, " "); //first element
+	//singleNum = atoi(token);
 	
-	/*if ((token = strtok(NULL, " ")) != NULL && !isspace(token)) { //if there's still something there and it is NOT just whitespace
-		return -1;
+	while (token != NULL && token[0] != '\n' && counter < sectionTotal) {
+		
+		printf("Yay %s yay\n", token);
+		singleNum = atoi(token);
+		printf("Yay %d yay\n", singleNum);
+		push(stack, singleNum);
+		counter++;
+		token = strtok(NULL, " ");
 	}
-	else {
-		return ourValue;
-	}*/
+	//printf("Counter equals %d and sectionTotal equals %d\n", counter, sectionTotal);
+	
+	if ((token != NULL && token[0] != '\n') || (counter != sectionTotal)) { //this handles too many numbers
+		errno = 1;
+		errorMessage(programName, "Invalid input file format");
+		exit(EXIT_FAILURE);
+	}
+	//printf("Counter equals %d and sectionTotal equals %d\n", counter, sectionTotal);
+	
+	printf("Made progress at least...\n");
+
+	fprintf(output, "%d: ", getpid());
+	int j;
+	for (j = 0; j < sectionTotal; j++) {
+		fprintf(output, " %d ", pop(stack));
+	}
+	fprintf(output, "\n");
+	printf("Made it to the end...\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -84,8 +114,6 @@ int main(int argc, char *argv[]) {
 	if (programName[0] == '.' && programName[1] == '/') {
 		memmove(programName, programName + 2, strlen(programName));
 	}
-	//printf("%s\n", programName);
-	//printf("%s\n", argv[0]);
 	
 	int option;
 	while ((option = getopt(argc, argv, "hi:o:")) != -1) {
@@ -126,8 +154,6 @@ int main(int argc, char *argv[]) {
 		errno = 1;
 		errorMessage(programName, "Invalid input file format1");		
 	}
-	int cool = childCount;
-	printf("Our first line is recorded to contain %d\n", cool);
 	
 	
 	int parentPid;
@@ -155,20 +181,17 @@ int main(int argc, char *argv[]) {
 		}
 		else if (pid == 0) { //child case
 			int sectionTotal;
-			//fscanf(input, "%d", &sectionTotal); //read the total for this section
-			//printf("!!!!!!!!!!!!!!!!");
-			//fgets(line, 100, input);
-			
 			sectionTotal = readOneNumber(input);
-			printf("readOneNumber returned %d\n", sectionTotal);
 			if (sectionTotal == -1) {
 				errno = 1;
 				errorMessage(programName, "Invalid input file format2");		
 			}
-			//int cool = childCount;
-			//printf("Our first line in child %d is recorded to contain %d\n", getpid(), sectionTotal);
 			
-			int j;
+			//void readAndStackNumbers(FILE *input, FILE *output, char programName[100], int sectionTotal)	
+			
+			readAndStackNumbers(input, output, programName, sectionTotal);
+			
+			/*int j;
 			int stack[sectionTotal];
 			for (j = 0; j < sectionTotal; j++) {
 				int temp;
@@ -176,14 +199,10 @@ int main(int argc, char *argv[]) {
 				push(stack, temp);
 			}
 			fprintf(output, "%d: ", getpid());
-			//printf("Here's the output!\n");
-			//printf("%d: ", getpid());
 			for (j = 0; j < sectionTotal; j++) {
 				fprintf(output, " %d ", pop(stack));
-				//printf(" %d ", pop(stack));
 			}
-			fprintf(output, "\n");
-			//printf("\n");
+			fprintf(output, "\n");*/
 			exit(0);
 			break; //I am the child, get to work
 		}
@@ -191,6 +210,17 @@ int main(int argc, char *argv[]) {
 			errorMessage(programName, "Could not create child");
 		}
 	}
+	
+	/*printf("final test\n");
+	char leftovers[100];
+	fgets(leftovers, 100, input); //these first two swips
+	fgets(leftovers, 100, input); //get the parent back on track 
+	fgets(leftovers, 100, input);
+	printf("))%s((\n", leftovers);
+	if (feof(input)) {
+		errno = 1;
+		errorMessage(programName, "Invalid input file format2");
+	}*/	
 	
 	fclose(input);
 	
