@@ -67,7 +67,7 @@ void readAndStackNumbers(FILE *input, FILE *output, char programName[100], int s
 	int counter = 0;
 	int singleNum;
 	fgets(line, 100, input);
-	printf("Here's our line: %s\n", line);
+	//printf("Here's our line: %s\n", line);
 
 	int stack[sectionTotal];
 	
@@ -76,23 +76,29 @@ void readAndStackNumbers(FILE *input, FILE *output, char programName[100], int s
 	
 	while (token != NULL && token[0] != '\n' && counter < sectionTotal) {
 		
-		printf("Yay %s yay\n", token);
+		//printf("Yay %s yay\n", token);
 		singleNum = atoi(token);
-		printf("Yay %d yay\n", singleNum);
+		//printf("Yay %d yay\n", singleNum);
 		push(stack, singleNum);
 		counter++;
 		token = strtok(NULL, " ");
 	}
 	//printf("Counter equals %d and sectionTotal equals %d\n", counter, sectionTotal);
 	
-	if ((token != NULL && token[0] != '\n') || (counter != sectionTotal)) { //this handles too many numbers
+	if (token != NULL && token[0] != '\n') { //this handles too many numbers
 		errno = 1;
-		errorMessage(programName, "Invalid input file format");
+		errorMessage(programName, "Invalid input file format. Line contains more numbers then expected. ");
 		exit(EXIT_FAILURE);
 	}
+	if (counter != sectionTotal) { //this handles too many numbers
+		errno = 1;
+		errorMessage(programName, "Invalid input file format. Line contains fewer numbers then expected. ");
+		exit(EXIT_FAILURE);
+	}
+	
 	//printf("Counter equals %d and sectionTotal equals %d\n", counter, sectionTotal);
 	
-	printf("Made progress at least...\n");
+	//printf("Made progress at least...\n");
 
 	fprintf(output, "%d: ", getpid());
 	int j;
@@ -100,7 +106,7 @@ void readAndStackNumbers(FILE *input, FILE *output, char programName[100], int s
 		fprintf(output, " %d ", pop(stack));
 	}
 	fprintf(output, "\n");
-	printf("Made it to the end...\n");
+	//printf("Made it to the end...\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -152,7 +158,7 @@ int main(int argc, char *argv[]) {
 	childCount = readOneNumber(input);
 	if (childCount == -1) {
 		errno = 1;
-		errorMessage(programName, "Invalid input file format1");		
+		errorMessage(programName, "Invalid input file format. First line must contain a single digit. ");		
 	}
 	
 	
@@ -184,43 +190,20 @@ int main(int argc, char *argv[]) {
 			sectionTotal = readOneNumber(input);
 			if (sectionTotal == -1) {
 				errno = 1;
-				errorMessage(programName, "Invalid input file format2");		
+				errorMessage(programName, "Invalid input file format. Line contains incorrect number of digits. ");		
 			}
 			
 			//void readAndStackNumbers(FILE *input, FILE *output, char programName[100], int sectionTotal)	
 			
 			readAndStackNumbers(input, output, programName, sectionTotal);
 			
-			/*int j;
-			int stack[sectionTotal];
-			for (j = 0; j < sectionTotal; j++) {
-				int temp;
-				fscanf(input, "%d", &temp);
-				push(stack, temp);
-			}
-			fprintf(output, "%d: ", getpid());
-			for (j = 0; j < sectionTotal; j++) {
-				fprintf(output, " %d ", pop(stack));
-			}
-			fprintf(output, "\n");*/
 			exit(0);
 			break; //I am the child, get to work
 		}
 		else {
-			errorMessage(programName, "Could not create child");
+			errorMessage(programName, "Could not create child ");
 		}
 	}
-	
-	/*printf("final test\n");
-	char leftovers[100];
-	fgets(leftovers, 100, input); //these first two swips
-	fgets(leftovers, 100, input); //get the parent back on track 
-	fgets(leftovers, 100, input);
-	printf("))%s((\n", leftovers);
-	if (feof(input)) {
-		errno = 1;
-		errorMessage(programName, "Invalid input file format2");
-	}*/	
 	
 	fclose(input);
 	
