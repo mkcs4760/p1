@@ -39,33 +39,17 @@ void removeSpaces(char* s) {
 }
 
 int readOneNumber(FILE *input, char programName[100]) {
-	printf("Checkpoing 4 \n");
 	char line[100];
 	char *token;
 	fgets(line, 100, input);
-	printf("Read line equals <%s>", line);
-	if (line[0] == '\0') {
+	if (line[0] == '\0') { //if there are no more lines, then we have an error
 		errno = 1;
 		errorMessage(programName, "Invalid input file format. Expected more lines then read. ");
 		exit(EXIT_FAILURE);
 	}
-	
-	
-	printf("Checkpoing 4.2 \n");
 	token = strtok(line, " "); //this is our first number
-	printf("Checkpoing 4.3 \n");
-	
-	
-	
-	printf("Token equals <%s>", token);
-	
-	
-	
-	
 	removeSpaces(token); //testing this new line
-	printf("Checkpoing 4.4 \n");
 	int ourValue = atoi(token);
-	printf("Checkpoing 5 \n");
 	if ((token = strtok(NULL, " ")) != NULL) {
 		//this also catches hanging whitespace
 		if (token[0] == '\n') {
@@ -81,30 +65,20 @@ int readOneNumber(FILE *input, char programName[100]) {
 }
 
 void readAndStackNumbers(FILE *input, FILE *output, char programName[100], int sectionTotal) {
-	printf("Checkpoing 7 \n");
 	char line[100];
 	char *token;
 	int counter = 0;
 	int singleNum;
 	fgets(line, 100, input);
-	//printf("Here's our line: %s\n", line);
-	printf("Checkpoing 8 \n");
 	int stack[sectionTotal];
 	
 	token = strtok(line, " "); //first element
-	//singleNum = atoi(token);
-	printf("Checkpoing 9 \n");
 	while (token != NULL && token[0] != '\n' && counter < sectionTotal) {
-		
-		//printf("Yay %s yay\n", token);
 		singleNum = atoi(token);
-		//printf("Yay %d yay\n", singleNum);
 		push(stack, singleNum);
 		counter++;
 		token = strtok(NULL, " ");
 	}
-	//printf("Counter equals %d and sectionTotal equals %d\n", counter, sectionTotal);
-	printf("Checkpoing 10 \n");
 	if (token != NULL && token[0] != '\n') { //this handles too many numbers
 		errno = 1;
 		errorMessage(programName, "Invalid input file format. Line contains more numbers then expected. ");
@@ -115,18 +89,12 @@ void readAndStackNumbers(FILE *input, FILE *output, char programName[100], int s
 		errorMessage(programName, "Invalid input file format. Line contains fewer numbers then expected. ");
 		exit(EXIT_FAILURE);
 	}
-	
-	//printf("Counter equals %d and sectionTotal equals %d\n", counter, sectionTotal);
-	
-	//printf("Made progress at least...\n");
-	printf("Checkpoing 11 \n");
 	fprintf(output, "%d: ", getpid());
 	int j;
 	for (j = 0; j < sectionTotal; j++) {
 		fprintf(output, " %d ", pop(stack));
 	}
 	fprintf(output, "\n");
-	printf("Checkpoing 12 \n");
 	//printf("Made it to the end...\n");
 }
 
@@ -191,14 +159,12 @@ int main(int argc, char *argv[]) {
 	for (i = 0; i < childCount; i++) {
 		char c;
 		int j;
-		printf("Checkpoing 1 \n");
 		for (j = 0; j < linesToPass; j++) { //we must pass over what the last child passed over so next child doesn't repeat work
 			do
 				c = fgetc(input);
 			while (c != '\n');
 		}
 		linesToPass = 2;
-		printf("Checkpoing 2 \n");
 		pid = fork();
 		if (pid > 0) { //parent case
 			parentPid = getpid();
@@ -207,18 +173,13 @@ int main(int argc, char *argv[]) {
 			continue; //I am the parent, create more children
 		}
 		else if (pid == 0) { //child case
-			printf("Checkpoing 3 \n");
 			int sectionTotal;
 			sectionTotal = readOneNumber(input, programName);
 			if (sectionTotal == -1) {
 				errno = 1;
 				errorMessage(programName, "Invalid input file format. Line contains incorrect number of digits. ");		
 			}
-			
-			//void readAndStackNumbers(FILE *input, FILE *output, char programName[100], int sectionTotal)	
-			printf("Checkpoing 6 \n");
 			readAndStackNumbers(input, output, programName, sectionTotal);
-			printf("Checkpoing 13 \n");
 			exit(0);
 			break; //I am the child, get to work
 		}
