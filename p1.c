@@ -8,8 +8,9 @@
 #include <errno.h>
 #include <ctype.h>
 
-int top = -1;
+int top = -1; //global value to ensure consistency among stack top
 
+//basic pop function for stack handling
 int pop(int stack[]) {
    int data;
    data = stack[top];
@@ -17,19 +18,21 @@ int pop(int stack[]) {
    return data;
 }
 
+//basic push functino for stack handling
 void push(int stack[], int data) {
 	top = top + 1;
 	stack[top] = data;
 }
 
+//takes in program name and error string, and runs error message procedure
 void errorMessage(char programName[100], char errorString[100]){
 	char errorFinal[200];
 	sprintf(errorFinal, "%s : Error : %s", programName, errorString);
-	//printf("%d\n", errno);
 	perror(errorFinal);
 	kill(0, SIGKILL);
 }
 
+//a function to check if string contains ending whitespace, and if so remove it
 void removeSpaces(char* s) {
 	int length = strlen(s);
 	char test = s[length - 1];
@@ -38,6 +41,7 @@ void removeSpaces(char* s) {
 	}
 }
 
+//a function designed to read a line containing a single number and process it
 int readOneNumber(FILE *input, char programName[100]) {
 	char line[100];
 	char *token;
@@ -46,16 +50,15 @@ int readOneNumber(FILE *input, char programName[100]) {
 		errno = 1;
 		errorMessage(programName, "Invalid input file format. Expected more lines then read. ");
 	}
-	token = strtok(line, " "); //this is our first number
-	removeSpaces(token); //testing this new line
+	token = strtok(line, " "); //read in a single numer
+	removeSpaces(token); //remove any hanging whitespace
 	int ourValue = atoi(token);
-	if ((token = strtok(NULL, " ")) != NULL) {
-		//this also catches hanging whitespace
-		if (token[0] == '\n') {
+	if ((token = strtok(NULL, " ")) != NULL) { //check if there is anything after this number
+		if (token[0] == '\n') { //if what remains is just new line character, no problem
 			return ourValue;
 		}
 		else {
-			return -1;
+			return -1; //else, the function failed and -1 is returned
 		}
 	}
 	else {
@@ -63,43 +66,43 @@ int readOneNumber(FILE *input, char programName[100]) {
 	}
 }
 
+//the function reads a line of multiple numbers, validates them, and handles them accordingly
 void readAndStackNumbers(FILE *input, FILE *output, char programName[100], int sectionTotal) {
 	char line[100];
 	char *token;
 	int counter = 0;
 	int singleNum;
-	fgets(line, 100, input);
-	int stack[sectionTotal];
+	fgets(line, 100, input); //get line of numbers
+	int stack[sectionTotal]; //create stack
 	
-	token = strtok(line, " "); //first element
-	while (token != NULL && token[0] != '\n' && counter < sectionTotal) {
+	token = strtok(line, " "); //get first element
+	while (token != NULL && token[0] != '\n' && counter < sectionTotal) { //repeat until no more numbers or we have more then we should
 		singleNum = atoi(token);
-		push(stack, singleNum);
+		push(stack, singleNum); //add element to stack
 		counter++;
-		token = strtok(NULL, " ");
+		token = strtok(NULL, " "); //get next element
 	}
 	if (token != NULL && token[0] != '\n') { //this handles too many numbers
 		errno = 1;
 		errorMessage(programName, "Invalid input file format. Line contains more numbers then expected. ");
 	}
-	if (counter != sectionTotal) { //this handles too many numbers
+	if (counter != sectionTotal) { //this handles too few numbers
 		errno = 1;
 		errorMessage(programName, "Invalid input file format. Line contains fewer numbers then expected. ");
 	}
 	fprintf(output, "%d: ", getpid());
 	int j;
 	for (j = 0; j < sectionTotal; j++) {
-		fprintf(output, " %d ", pop(stack));
+		fprintf(output, " %d ", pop(stack)); //pull elements from stack and print to output file
 	}
 	fprintf(output, "\n");
-	//printf("Made it to the end...\n");
 }
 
 int main(int argc, char *argv[]) {
 	char inputFileName[] = "input.dat";
 	char outputFileName[] = "output.dat";
 	
-	//this code allows us to print the program name in error messages
+	//this section of code allows us to print the program name in error messages
 	char programName[100];
 	strcpy(programName, argv[0]);
 	//printf("%s\n", programName);
@@ -107,31 +110,31 @@ int main(int argc, char *argv[]) {
 		memmove(programName, programName + 2, strlen(programName));
 	}
 	
+	//first we process the getopt arguments
 	int option;
 	while ((option = getopt(argc, argv, "hi:o:")) != -1) {
 		switch (option) {
-			case 'h' :	printf("Help page for OS_Klein_project1\n");
+			case 'h' :	printf("Help page for OS_Klein_project1\n"); //for h, we print data to the screen
 						printf("Consists of the following:\n\tOne .c file titled p1.c\n\tOne Makefile\n\tOne README.md file\n\tOne version control log.\n");
 						printf("The command 'make' will run the makefile and compile the program\n");
 						printf("Usage: ./p1 -i <inputFileName> -o <outputFileName> | ./p1 -h\n");
 						printf("Version control acomplished using github. Log obtained using command 'git log > versionLog.txt\n");
 						exit(0);
 						break;
-			case 'i' :	strcpy(inputFileName, optarg);
+			case 'i' :	strcpy(inputFileName, optarg); //for i, we specify input file name
 						break;
-			case 'o' :	strcpy(outputFileName, optarg);
+			case 'o' :	strcpy(outputFileName, optarg); //for o, we specify output file name
 						break;
-			default :	errno = 22; //invalid argument
+			default :	errno = 22; //anything else is an invalid argument
 						errorMessage(programName, "You entered an invalid argument. Please use argument -h to see the help page. ");
 		}
 	}
 	
 	printf("Welcome to the project\n");
-
+	
+	//open input file
 	FILE *input;
 	input = fopen(inputFileName, "r");
-	FILE *output;
-	output = fopen(outputFileName, "w");
 	if (input == NULL) {
 		char errorString[100];
 		snprintf(errorString, sizeof errorString, "Failed to locate file %s ", inputFileName);
@@ -141,8 +144,9 @@ int main(int argc, char *argv[]) {
 
 	int childCount;
 	
+	//read first line, which specifies child count.
 	childCount = readOneNumber(input, programName);
-	if (childCount == -1) {
+	if (childCount == -1) { //return value set to -1 if error occured
 		errno = 1;
 		errorMessage(programName, "Invalid input file format. First line must contain a single digit. ");		
 	}
@@ -153,6 +157,12 @@ int main(int argc, char *argv[]) {
 	
 	pid_t pid;
 	int i;
+	
+	//open output file
+	FILE *output;
+	output = fopen(outputFileName, "w");
+	
+	//for loop runs once for every child
 	for (i = 0; i < childCount; i++) {
 		char c;
 		int j;
@@ -167,18 +177,18 @@ int main(int argc, char *argv[]) {
 			parentPid = getpid();
 			wait(NULL);
 			listOfPids[i] = pid;
-			continue; //I am the parent, create more children
+			continue; //continue to create more children
 		}
 		else if (pid == 0) { //child case
 			int sectionTotal;
-			sectionTotal = readOneNumber(input, programName);
+			sectionTotal = readOneNumber(input, programName); //handles first number
 			if (sectionTotal == -1) {
 				errno = 1;
 				errorMessage(programName, "Invalid input file format. Line contains incorrect number of digits. ");		
 			}
-			readAndStackNumbers(input, output, programName, sectionTotal);
+			readAndStackNumbers(input, output, programName, sectionTotal); //handles next line of multiple numbers
 			exit(0);
-			break; //I am the child, get to work
+			break; //child task is complete
 		}
 		else {
 			errorMessage(programName, "Could not create child ");
@@ -186,8 +196,8 @@ int main(int argc, char *argv[]) {
 	}
 	
 	char leftovers[100];
-	fgets(leftovers, 100, input); //we have to do this twice
-	fgets(leftovers, 100, input); //to get rid of the last two line we read
+	fgets(leftovers, 100, input); //we have to skip the next two lines in parent
+	fgets(leftovers, 100, input); //to catch it up with the youngest child
 	fgets(leftovers, 100, input); //before we check if there's extra text or not
 	if (!feof(input)) {
 		errno = 1;
@@ -196,6 +206,7 @@ int main(int argc, char *argv[]) {
 	
 	fclose(input);
 	
+	//print final data to output file
 	fprintf(output, "All children were: ");
 	for (i = 0; i < childCount; i++) {
 		fprintf(output, " %d ", listOfPids[i]);
