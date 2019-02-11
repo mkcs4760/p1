@@ -45,7 +45,6 @@ int readOneNumber(FILE *input, char programName[100]) {
 	if (line[0] == '\0') { //if there are no more lines, then we have an error
 		errno = 1;
 		errorMessage(programName, "Invalid input file format. Expected more lines then read. ");
-		exit(EXIT_FAILURE);
 	}
 	token = strtok(line, " "); //this is our first number
 	removeSpaces(token); //testing this new line
@@ -82,12 +81,10 @@ void readAndStackNumbers(FILE *input, FILE *output, char programName[100], int s
 	if (token != NULL && token[0] != '\n') { //this handles too many numbers
 		errno = 1;
 		errorMessage(programName, "Invalid input file format. Line contains more numbers then expected. ");
-		exit(EXIT_FAILURE);
 	}
 	if (counter != sectionTotal) { //this handles too many numbers
 		errno = 1;
 		errorMessage(programName, "Invalid input file format. Line contains fewer numbers then expected. ");
-		exit(EXIT_FAILURE);
 	}
 	fprintf(output, "%d: ", getpid());
 	int j;
@@ -186,6 +183,15 @@ int main(int argc, char *argv[]) {
 		else {
 			errorMessage(programName, "Could not create child ");
 		}
+	}
+	
+	char leftovers[100];
+	fgets(leftovers, 100, input); //we have to do this twice
+	fgets(leftovers, 100, input); //to get rid of the last two line we read
+	fgets(leftovers, 100, input); //before we check if there's extra text or not
+	if (!feof(input)) {
+		errno = 1;
+		errorMessage(programName, "Invalid input file format. More lines in file then expected. ");		
 	}
 	
 	fclose(input);
