@@ -1,9 +1,8 @@
-//working on adding input format testing
+//please read README file for program information
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <sys/types.h> //make sure you need all of these...
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
